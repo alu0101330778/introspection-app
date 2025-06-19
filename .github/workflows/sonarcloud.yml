@@ -20,10 +20,10 @@ jobs:
           flutter-version: 'stable'
 
       - name: Install dependencies
-        run: flutter pub get
+        run: cd app_libros && flutter pub get
 
       - name: Run tests with coverage
-        run: flutter test --coverage
+        run: cd app_libros && flutter test --coverage
 
       - name: Convert coverage to lcov.info (if needed)
         run: |
