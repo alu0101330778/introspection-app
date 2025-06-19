@@ -12,8 +12,8 @@ steps:
 
   - name: Crear archivo .env desde secretos
     run: |
-      echo "API_URL=${{ secrets.API_URL }}" >> .env
-      echo "API_KEY=${{ secrets.API_KEY }}" >> .env
+      echo "API_URL=${{ secrets.API_BASE_URL }}" >> .env
+      echo "API_KEY=${{ secrets.API_KEYS }}" >> .env
       echo "EMOTIONS=${{ secrets.EMOTIONS }}" >> .env
       # Agrega aquí más variables según tu .env, excepto las que terminan en TEST
 
