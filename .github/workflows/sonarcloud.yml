@@ -32,6 +32,9 @@ jobs:
             exit 1
           fi
 
+      - name: Run Dart analyze
+        run: flutter analyze > dart_analyze.log || true
+
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@v2
         with:
