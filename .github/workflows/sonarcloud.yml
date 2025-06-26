@@ -1,23 +1,19 @@
-name: SonarCloud & Build
-
+name: Coverage
 on:
   push:
     branches:
       - main
-      - master
   pull_request:
     types: [opened, synchronize, reopened]
-
 jobs:
   sonarqube:
-    name: SonarCloud Analysis
+    name: SonarQube
     runs-on: ubuntu-latest
     steps:
-      - name: 📦 Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Necesario para SonarCloud
-
+          fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
+      # The analysis requires to retrieve dependencies and build successfully
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
         with:
@@ -29,16 +25,8 @@ jobs:
       - name: Run tests with coverage
         run: flutter test --coverage
 
-      - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@v2
-        with:
-          args: >
-            -Dsonar.projectKey=introspection-app_introspection-app
-            -Dsonar.organization=introspection-app
-            -Dsonar.sources=.
-            -Dsonar.exclusions=**/build/**,**/*.g.dart
-            -Dsonar.dart.coverage.reportPaths=coverage/lcov.info
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@v5
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-
 
