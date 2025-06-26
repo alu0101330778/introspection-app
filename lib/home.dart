@@ -274,6 +274,33 @@ class _InteractiveResourceSection extends StatefulWidget {
 class _InteractiveResourceSectionState
     extends State<_InteractiveResourceSection> {
   bool recursoRecibido = false;
+  String? imageUrl;
+  bool cargando = false;
+
+  Future<void> obtenerImagen() async {
+    setState(() {
+      cargando = true;
+    });
+    try {
+      final headers = await getApiHeaders();
+      final baseUrl = dotenv.env['API_BASE_URL']!;
+      final url = await fetchRandomImageUrl(baseUrl: baseUrl, headers: headers);
+      setState(() {
+        imageUrl = url;
+        recursoRecibido = true;
+        cargando = false;
+      });
+    } catch (_) {
+      setState(() {
+        cargando = false;
+        recursoRecibido = false;
+        imageUrl = null;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('No se pudo cargar la imagen.')),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -284,49 +311,44 @@ class _InteractiveResourceSectionState
       child: Padding(
         padding: const EdgeInsets.all(20.0),
         child: Center(
-          child:
-              recursoRecibido
+          child: cargando
+              ? const CircularProgressIndicator()
+              : recursoRecibido && imageUrl != null
                   ? Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: const [
-                      Icon(Icons.image, size: 80, color: Color(0xFF64B5F6)),
-                      SizedBox(height: 10),
-                      Text(
-                        "Aquí se mostrará el recurso multimedia.",
-                        style: TextStyle(
-                          color: Color(0xFF212121),
-                          fontSize: 15,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Image.network(
+                          imageUrl!,
+                          height: 180,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) =>
+                              const Icon(Icons.broken_image, size: 80, color: Color(0xFF64B5F6)),
                         ),
-                      ),
-                    ],
-                  )
+                      ],
+                    )
                   : ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFF9575CD),
-                      foregroundColor: Colors.white,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(20),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: const Color(0xFF9575CD),
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
                       ),
-                    ),
-                    onPressed: () {
-                      setState(() {
-                        recursoRecibido = true;
-                      });
-                    },
-                    child: const Padding(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 32,
-                        vertical: 16,
-                      ),
-                      child: Text(
-                        "Púlsame",
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.bold,
+                      onPressed: obtenerImagen,
+                      child: const Padding(
+                        padding: EdgeInsets.symmetric(
+                          horizontal: 32,
+                          vertical: 16,
+                        ),
+                        child: Text(
+                          "Púlsame",
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                     ),
-                  ),
         ),
       ),
     );

@@ -1,4 +1,4 @@
-name: SonarCloud Analysis
+name: SonarCloud & Coverage Reports
 
 on:
   push:
@@ -7,11 +7,15 @@ on:
     branches: [ main ]
 
 jobs:
-  sonarcloud:
+  sonarcloud-and-coverage:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+      pages: write
 
     steps:
-      - name: Checkout code
+      - name: 📦 Checkout code
         uses: actions/checkout@v4
 
       - name: Set up Flutter
@@ -25,19 +29,10 @@ jobs:
       - name: Run tests with coverage
         run: flutter test --coverage
 
-      - name: Convert coverage to lcov.info (if needed)
-        run: |
-          if [ ! -f coverage/lcov.info ]; then
-            echo "No lcov.info found!"
-            exit 1
-          fi
-
-      - name: Run Dart analyze
-        run: flutter analyze > dart_analyze.log || true
-
-      - name: SonarCloud Scan
-        uses: SonarSource/sonarcloud-github-action@v2
-        with:
-          projectBaseDir: .
+      - name: 📊 Reports Coverage to Github Pages
+        id: flutter-coverage-action
+        uses: ProjectAJ14/flutter-coverage-action@v1
         env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.SONAR_TOKEN }}
+
+
