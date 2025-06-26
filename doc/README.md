@@ -2,7 +2,17 @@
 
 ## Descripción general
 
-**introspection-app** es una aplicación Flutter multiplataforma diseñada para fomentar la introspección personal, el registro emocional y el bienestar a través de funcionalidades como frases motivacionales, seguimiento de emociones, perfil de usuario, tienda de productos y más.
+**introspection-app** es una aplicación móvil multiplataforma que digitaliza la experiencia reflexiva de los libros de Felipe. Cada página de los libros invita a una pausa emocional, y la app reproduce esta mecánica permitiendo al usuario recibir frases al azar o personalizadas según su estado emocional, gracias a una capa de inteligencia artificial.
+
+## Objetivos
+
+- Facilitar el acceso a reflexiones literarias de manera significativa y personalizada.
+- Registrar y visualizar la evolución emocional del usuario mediante gráficas.
+- Ofrecer productos recomendados en función del perfil emocional.
+
+## Justificación
+
+La app combina literatura, IA, diseño emocional y recomendaciones personalizadas, resultando en una herramienta útil a nivel comercial, terapéutico y educativo. Se prioriza la experiencia de usuario, la privacidad y la escalabilidad técnica.
 
 ---
 

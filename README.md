@@ -1,12 +1,14 @@
 # introspection-app
 
-Aplicación Flutter multiplataforma para el registro emocional, introspección y bienestar personal.
+Aplicación móvil multiplataforma que traslada al entorno digital la práctica emocional y reflexiva presente en los libros de <nombre del autor>. Inspirada en la mecánica de abrir el libro al azar para encontrar una frase significativa, la app permite acceder a reflexiones de los libros tanto de forma aleatoria como mediante un sistema de recomendación personalizado basado en el estado emocional del usuario.
 
----
+**Características principales:**
+- Registro y seguimiento de emociones mediante interacción inicial.
+- Generación de gráficas de evolución emocional.
+- Sugerencia de reflexiones .
+- Recomendación de productos personalizados según el perfil emocional del usuario.
 
-## Descripción
-
-**introspection-app** permite a los usuarios registrar sus emociones diarias, recibir frases motivacionales personalizadas, visualizar su evolución emocional mediante gráficos y acceder a una tienda de productos relacionados con el bienestar. Incluye autenticación segura, perfil de usuario y funcionalidades interactivas.
+La aplicación integra literatura, inteligencia artificial y diseño emocional, priorizando una interfaz amable, privacidad y una arquitectura escalable. Es una herramienta con potencial comercial, terapéutico y educativo.
 
 ---
 
