@@ -1,22 +1,22 @@
-name: SonarCloud & Coverage Reports
+name: SonarCloud & Build
 
 on:
   push:
-    branches: [ main ]
+    branches:
+      - main
+      - master
   pull_request:
-    branches: [ main ]
+    types: [opened, synchronize, reopened]
 
 jobs:
-  sonarcloud-and-coverage:
+  sonarqube:
+    name: SonarCloud Analysis
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: write
-      pages: write
-
     steps:
       - name: 📦 Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Necesario para SonarCloud
 
       - name: Set up Flutter
         uses: subosito/flutter-action@v2
@@ -29,10 +29,16 @@ jobs:
       - name: Run tests with coverage
         run: flutter test --coverage
 
-      - name: 📊 Reports Coverage to Github Pages
-        id: flutter-coverage-action
-        uses: ProjectAJ14/flutter-coverage-action@v1
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@v2
+        with:
+          args: >
+            -Dsonar.projectKey=introspection-app_introspection-app
+            -Dsonar.organization=introspection-app
+            -Dsonar.sources=.
+            -Dsonar.exclusions=**/build/**,**/*.g.dart
+            -Dsonar.dart.coverage.reportPaths=coverage/lcov.info
         env:
-          GITHUB_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
 
 
