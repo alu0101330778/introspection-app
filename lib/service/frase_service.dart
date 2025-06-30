@@ -16,6 +16,21 @@ Future<Map<String, dynamic>> fetchFraseByUser({
   return {'statusCode': response.statusCode, 'body': jsonDecode(response.body)};
 }
 
+Future<Map<String, dynamic>> fetchFraseByUserFixed({
+  required String userId,
+  required String baseUrl,
+  required List<String> emociones,
+  required Map<String, String> headers,
+}) async {
+  final uri = Uri.parse('$baseUrl/sentences/getByUser');
+  final response = await http.post(
+    uri,
+    headers: headers,
+    body: jsonEncode({'userId': userId, 'emotions': emociones}),
+  );
+  return {'statusCode': response.statusCode, 'body': jsonDecode(response.body)};
+}
+
 Future<Map<String, dynamic>> addFavoriteSentence({
   required String baseUrl,
   required String userId,

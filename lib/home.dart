@@ -70,12 +70,22 @@ class _PaginaHomeState extends State<PaginaHome> {
     }
   }
 
-  void _onItemTapped(int index) {
+  void _onItemTapped(int index) async {
     if (index == 2) {
+      final enableEmotionsStr = await storage.read(key: 'enableEmotions');
+      final randomReflexionStr = await storage.read(key: 'randomReflexion');
+      final enableEmotions = enableEmotionsStr == null ? true : enableEmotionsStr == 'true';
+      final randomReflexion = randomReflexionStr == null ? true : randomReflexionStr == 'true';
+
       Navigator.pushNamed(
         context,
         '/inicial',
-        arguments: {'nombreUsuario': username ?? 'Usuario', 'inicial': false},
+        arguments: {
+          'nombreUsuario': username ?? 'Usuario',
+          'inicial': false,
+          'enableEmotions': enableEmotions,
+          'randomReflexion': randomReflexion,
+        },
       );
     } else {
       setState(() {

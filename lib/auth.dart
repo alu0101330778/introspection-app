@@ -48,15 +48,20 @@ class _AuthPageState extends State<AuthPage>
     if (result['statusCode'] == 200 && data['token'] != null) {
       await storage.write(key: 'token', value: data['token']);
       await storage.write(key: 'userId', value: data['userId']);
+      await storage.write(key: 'enableEmotions', value: (data['enableEmotions'] ?? true).toString());
+      await storage.write(key: 'randomReflexion', value: (data['randomReflexion'] ?? true).toString());
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Sesión iniciada correctamente')),
       );
-      Navigator.push(
+      Navigator.pushReplacement(
         context,
         MaterialPageRoute(
-          builder:
-              (context) =>
-                  PaginaInicial(nombreUsuario: data['username'], inicial: true),
+          builder: (context) => PaginaInicial(
+            nombreUsuario: data['username'],
+            inicial: true,
+            enableEmotions: data['enableEmotions'] ?? true,
+            randomReflexion: data['randomReflexion'] ?? true,
+          ),
         ),
       );
     } else {

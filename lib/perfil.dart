@@ -5,6 +5,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'utils/api_headers.dart';
 import 'service/perfil_service.dart';
+import 'package:google_fonts/google_fonts.dart'; // Añade esta línea
 
 class PaginaPerfil extends StatefulWidget {
   const PaginaPerfil({super.key});
@@ -17,6 +18,11 @@ class _PaginaPerfilState extends State<PaginaPerfil> {
   Map<String, dynamic>? usuario;
   bool cargando = true;
   final storage = const FlutterSecureStorage();
+
+  // NUEVO: Estados locales para los switches
+  bool? enableEmotions;
+  bool? randomReflexion;
+  bool actualizando = false;
 
   // Variables de paginación para el gráfico temporal
   int diasPorPagina = 7;
@@ -43,12 +49,43 @@ class _PaginaPerfilState extends State<PaginaPerfil> {
         setState(() {
           usuario = data;
           cargando = false;
+          // NUEVO: Inicializa los switches
+          enableEmotions = data['enableEmotions'] ?? false;
+          randomReflexion = data['randomReflexion'] ?? false;
         });
       } else {
         setState(() => cargando = false);
       }
     } catch (e) {
       setState(() => cargando = false);
+    }
+  }
+
+  // NUEVO: Función para actualizar settings
+  Future<void> actualizarSettings() async {
+    setState(() => actualizando = true);
+    final userId = await storage.read(key: 'userId');
+    final baseUrl = dotenv.env['API_BASE_URL']!;
+    final headers = await getApiHeaders();
+    final result = await updateUserSettings(
+      baseUrl: baseUrl,
+      userId: userId!,
+      enableEmotions: enableEmotions!,
+      randomReflexion: randomReflexion!,
+      headers: headers,
+    );
+    setState(() => actualizando = false);
+    if (result['statusCode'] == 200) {
+      await storage.write(key: 'enableEmotions', value: enableEmotions.toString());
+      await storage.write(key: 'randomReflexion', value: randomReflexion.toString());
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Configuración actualizada')),
+      );
+      await cargarUsuario();
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Error actualizando configuración')),
+      );
     }
   }
 
@@ -116,11 +153,11 @@ class _PaginaPerfilState extends State<PaginaPerfil> {
             .toList();
 
     return WillPopScope(
-      onWillPop: () async => false, // Bloquea el botón atrás
+      onWillPop: () async => false,
       child: Scaffold(
         appBar: AppBar(
-          automaticallyImplyLeading: false, // Quita la flecha atrás
-          title: const Text('Perfil'),
+          automaticallyImplyLeading: false,
+          title: Text('Perfil', style: GoogleFonts.montserrat(fontWeight: FontWeight.w500)),
           backgroundColor: const Color(0xFF64B5F6),
           foregroundColor: Colors.white,
           elevation: 0,
@@ -142,15 +179,85 @@ class _PaginaPerfilState extends State<PaginaPerfil> {
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
                 ),
-                child: ExpansionTile(
-                  title: const Text(
-                    'Datos del usuario',
-                    style: TextStyle(color: Color(0xFF283593)),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Datos del usuario',
+                        style: GoogleFonts.montserrat(
+                          color: const Color(0xFF283593),
+                          fontWeight: FontWeight.w600,
+                          fontSize: 18,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      ...datosUsuario.entries.map((e) => Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 2.0),
+                        child: Text(
+                          '${e.key}: ${e.value}',
+                          style: GoogleFonts.montserrat(
+                            fontSize: 15,
+                            color: Colors.black87,
+                            fontWeight: FontWeight.w400,
+                          ),
+                        ),
+                      )),
+                      const Divider(height: 24),
+                      // NUEVO: Switches para enableEmotions y randomReflexion
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "Preguntar por emociones",
+                            style: GoogleFonts.montserrat(fontSize: 15),
+                          ),
+                          Switch(
+                            value: enableEmotions ?? false,
+                            onChanged: (v) => setState(() => enableEmotions = v),
+                          ),
+                        ],
+                      ),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            "Reflexión aleatoria",
+                            style: GoogleFonts.montserrat(fontSize: 15),
+                          ),
+                          Switch(
+                            value: randomReflexion ?? false,
+                            onChanged: (v) => setState(() => randomReflexion = v),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Center(
+                        child: ElevatedButton.icon(
+                          icon: actualizando
+                              ? const SizedBox(
+                                  width: 16,
+                                  height: 16,
+                                  child: CircularProgressIndicator(strokeWidth: 2),
+                                )
+                              : const Icon(Icons.save),
+                          label: Text(
+                            actualizando ? "Guardando..." : "Actualizar datos",
+                            style: GoogleFonts.montserrat(),
+                          ),
+                          onPressed: actualizando ? null : actualizarSettings,
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: const Color(0xFF64B5F6),
+                            foregroundColor: Colors.white,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(12),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
-                  children:
-                      datosUsuario.entries.map((e) {
-                        return ListTile(title: Text('${e.key}: ${e.value}'));
-                      }).toList(),
                 ),
               ),
               const SizedBox(height: 10),

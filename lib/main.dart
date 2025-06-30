@@ -57,12 +57,12 @@ class MiApp extends StatelessWidget {
         home: const AuthPage(), // O la pantalla inicial que uses
         routes: {
           '/inicial': (context) {
-            final args =
-                ModalRoute.of(context)?.settings.arguments
-                    as Map<String, dynamic>?;
+            final args = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
             return PaginaInicial(
               nombreUsuario: args?['nombreUsuario'] ?? 'Usuario',
               inicial: args?['inicial'] ?? true,
+              enableEmotions: args?['enableEmotions'] ?? true,
+              randomReflexion: args?['randomReflexion'] ?? true,
             );
           },
           '/paginaFrase': (context) => const PaginaFrase(),

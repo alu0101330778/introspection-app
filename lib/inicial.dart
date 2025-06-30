@@ -8,9 +8,14 @@ import 'service/inicial_service.dart';
 class PaginaInicial extends StatefulWidget {
   final String nombreUsuario;
   final bool inicial;
+  final bool enableEmotions;
+  final bool randomReflexion;
+
   const PaginaInicial({
     required this.nombreUsuario,
     required this.inicial,
+    required this.enableEmotions,
+    required this.randomReflexion,
     super.key,
   });
 
@@ -35,41 +40,52 @@ class _PaginaInicialState extends State<PaginaInicial>
     super.initState();
 
     if (widget.inicial) {
-      // 1. Mostrar "Bienvenido Juan"
-      Future.delayed(const Duration(milliseconds: 500), () {
-        setState(() => mensaje1Visible = true);
-      });
-
-      // 2. Ocultar "Bienvenido Juan"
-      Future.delayed(const Duration(seconds: 2), () {
-        setState(() => mensaje1Visible = false);
-      });
-
-      // 3. Mostrar "¿Cómo te sientes hoy?"
+      bienvenida();
       Future.delayed(const Duration(seconds: 4), () {
-        setState(() {
-          currentMessage = "¿Cómo te sientes hoy?";
-          mensaje2Visible = true;
-        });
+      setState(() {
+        currentMessage = widget.enableEmotions
+            ? "¿Cómo te sientes?"
+            : "Realiza un momento presente";
+        mensaje2Visible = true;
       });
-      // 4. Mostrar mapa
-      Future.delayed(const Duration(seconds: 6), () {
-        setState(() => showMapa = true);
-      });
+      
+      
+    });
+    Future.delayed(const Duration(seconds: 7), () {
+      setState(() => showMapa = widget.enableEmotions);
+      if (!widget.enableEmotions) {
+        confirmar();
+      }
+    });
     } else {
       Future.delayed(const Duration(seconds: 1), () {
-        setState(() {
-          currentMessage = "¿Cómo te sientes?";
-          mensaje2Visible = true;
-        });
+      setState(() {
+        currentMessage = widget.enableEmotions
+            ? "¿Cómo te sientes?"
+            : "Realiza un momento presente";
+        mensaje2Visible = true;
       });
-      // 4. Mostrar mapa
-      Future.delayed(const Duration(seconds: 2), () {
-        setState(() => showMapa = true);
-      });
+      
+    });
+    Future.delayed(const Duration(seconds: 4), () {
+      setState(() => showMapa = widget.enableEmotions);
+      if (!widget.enableEmotions) {
+        confirmar();
+      }
+    });
     }
   }
 
+  void bienvenida() {
+    Future.delayed(const Duration(milliseconds: 500), () {
+        setState(() => mensaje1Visible = true);
+      });
+      Future.delayed(const Duration(seconds: 2), () {
+        setState(() => mensaje1Visible = false);
+      });
+  }
+
+  
   void toggleEmocion(String emocion) {
     setState(() {
       if (emocionesSeleccionadas.contains(emocion)) {
@@ -84,30 +100,42 @@ class _PaginaInicialState extends State<PaginaInicial>
     final baseUrl = dotenv.env['API_BASE_URL']!;
     final storage = FlutterSecureStorage();
     final userId = await storage.read(key: 'userId');
+    final headers = await getApiHeaders();
 
-    try {
-      final headers = await getApiHeaders();
+    if (widget.enableEmotions) {
       final ok = await postUserEmotions(
         baseUrl: baseUrl,
         userId: userId!,
         emociones: emocionesSeleccionadas,
         headers: headers,
       );
-
       if (ok) {
         Navigator.pushNamed(
           context,
           '/paginaFrase',
-          arguments: {'userId': userId, 'emociones': emocionesSeleccionadas},
+          arguments: {
+            'userId': userId,
+            'emociones': emocionesSeleccionadas,
+            'randomReflexion': widget.randomReflexion,
+            'enableEmotions': widget.enableEmotions,
+          },
         );
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Error al guardar las emociones.')),
         );
       }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('No se pudo conectar al servidor.')),
+    } else {
+      // No se piden emociones, se navega directo y se mandan emociones vacías
+      Navigator.pushNamed(
+        context,
+        '/paginaFrase',
+        arguments: {
+          'userId': userId,
+          'emociones': [],
+          'randomReflexion': widget.randomReflexion,
+          'enableEmotions': widget.enableEmotions,
+        },
       );
     }
   }
@@ -172,29 +200,29 @@ class _PaginaInicialState extends State<PaginaInicial>
                   AnimatedOpacity(
                     opacity: showMapa ? 1 : 0,
                     duration: const Duration(seconds: 2),
-                    child:
-                        showMapa
-                            ? Column(
-                              children: [
-                                const Text(
-                                  "Elige tus emociones:",
-                                  textAlign: TextAlign.center,
-                                  style: TextStyle(
-                                    fontSize: 18,
-                                    color: Color(0xFF283593),
-                                  ),
+                    child: showMapa
+                        ? Column(
+                            children: [
+                              const Text(
+                                "Elige tus emociones:",
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  fontSize: 18,
+                                  color: Color(0xFF283593),
                                 ),
-                                const SizedBox(height: 20),
-                                Padding(
-                                  padding: const EdgeInsets.symmetric(
-                                    horizontal: 16.0,
-                                  ),
-                                  child: Wrap(
-                                    spacing: 10,
-                                    runSpacing: 10,
-                                    alignment: WrapAlignment.center,
-                                    children:
-                                        emociones.map((e) {
+                              ),
+                              const SizedBox(height: 20),
+                              Padding(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 16.0,
+                                ),
+                                child: Wrap(
+                                  spacing: 10,
+                                  runSpacing: 10,
+                                  alignment: WrapAlignment.center,
+                                  children: emociones
+                                      .map(
+                                        (e) {
                                           final seleccionada =
                                               emocionesSeleccionadas.contains(
                                                 e,
@@ -215,33 +243,49 @@ class _PaginaInicialState extends State<PaginaInicial>
                                                       : Colors.black87,
                                             ),
                                           );
-                                        }).toList(),
+                                        },
+                                      )
+                                      .toList(),
+                                ),
+                              ),
+                              const SizedBox(height: 40),
+                              ElevatedButton(
+                                onPressed:
+                                    emocionesSeleccionadas.isNotEmpty
+                                        ? confirmar
+                                        : null,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(
+                                    0xFFE1BEE7,
+                                  ), // lila suave
+                                  foregroundColor: Colors.white,
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 24,
+                                    vertical: 12,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(30),
                                   ),
                                 ),
-                                const SizedBox(height: 40),
-                                ElevatedButton(
-                                  onPressed:
-                                      emocionesSeleccionadas.isNotEmpty
-                                          ? confirmar
-                                          : null,
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color(
-                                      0xFFE1BEE7,
-                                    ), // lila suave
-                                    foregroundColor: Colors.white,
-                                    padding: const EdgeInsets.symmetric(
-                                      horizontal: 24,
-                                      vertical: 12,
-                                    ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(30),
-                                    ),
-                                  ),
-                                  child: const Text('Confirmar'),
-                                ),
-                              ],
-                            )
-                            : const SizedBox.shrink(),
+                                child: const Text('Confirmar'),
+                              ),
+                            ],
+                          )
+                        : ElevatedButton(
+                            onPressed: confirmar,
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFFE1BEE7),
+                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 24,
+                                vertical: 12,
+                              ),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30),
+                              ),
+                            ),
+                            child: const Text('Continuar'),
+                          ),
                   ),
                 ],
               ),

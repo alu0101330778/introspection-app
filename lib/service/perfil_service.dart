@@ -25,3 +25,23 @@ Future<Map<String, dynamic>> removeFavoriteSentence({
   );
   return {'statusCode': response.statusCode, 'body': jsonDecode(response.body)};
 }
+
+Future<Map<String, dynamic>> updateUserSettings({
+  required String baseUrl,
+  required String userId,
+  required bool enableEmotions,
+  required bool randomReflexion,
+  required Map<String, String> headers,
+}) async {
+  final uri = Uri.parse('$baseUrl/users/settings');
+  final response = await http.patch(
+    uri,
+    headers: headers,
+    body: jsonEncode({
+      'userId': userId,
+      'enableEmotions': enableEmotions,
+      'randomReflexion': randomReflexion,
+    }),
+  );
+  return {'statusCode': response.statusCode, 'body': jsonDecode(response.body)};
+}

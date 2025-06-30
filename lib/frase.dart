@@ -1,3 +1,4 @@
+import 'package:app_libros/inicial.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
@@ -31,6 +32,8 @@ class _PaginaFraseState extends State<PaginaFrase> {
 
   String? sentenceId; // Añade esto a tus variables de estado
 
+  bool enableEmotions = false;
+  bool randomReflexion = true;
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
@@ -81,33 +84,34 @@ class _PaginaFraseState extends State<PaginaFrase> {
   }
 
   Future<void> obtenerFraseDesdeBackend(String userId) async {
-    final emociones = emocionesRecibidas;
-    if (emociones == null || emociones.isEmpty) {
-      setState(() {
-        title = "Error";
-        body = "No se recibieron emociones.";
-        fondoFinal = true;
-        mostrarTitle = true;
-        mostrarBody = true;
-        mostrarEnd = true;
-        mostrarBoton = true;
-      });
-      return;
-    }
+    final data = ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+    final emociones = emocionesRecibidas ?? [];
+    randomReflexion = data?['randomReflexion'] ?? true;
+    enableEmotions = data?['enableEmotions'] ?? true;
 
     try {
       final baseUrl = dotenv.env['API_BASE_URL']!;
       final headers = await getApiHeaders();
-      final result = await fetchFraseByUser(
-        baseUrl: baseUrl,
-        userId: userId,
-        emociones: emociones,
-        headers: headers,
-      );
+      Map<String, dynamic> result;
+
+      if (randomReflexion) {
+        result = await fetchFraseByUser(
+          baseUrl: baseUrl,
+          userId: userId,
+          emociones: emociones,
+          headers: headers,
+        );
+      } else {
+        result = await fetchFraseByUserFixed(
+          baseUrl: baseUrl,
+          userId: userId,
+          emociones: emociones,
+          headers: headers,
+        );
+      }
 
       if (result['statusCode'] == 200) {
         final data = result['body'];
-
         setState(() {
           title = data['title'];
           body = (data['body'] as String).replaceAll(r'\n', '\n');
@@ -115,7 +119,6 @@ class _PaginaFraseState extends State<PaginaFrase> {
           sentenceId = data['_id'];
           fondoFinal = true;
         });
-
         inicializarAnimaciones();
       } else {
         throw Exception('Error del servidor');
@@ -239,7 +242,17 @@ class _PaginaFraseState extends State<PaginaFrase> {
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         ElevatedButton.icon(
-                          onPressed: () => Navigator.pop(context),
+                          onPressed: () => Navigator.pushReplacement(
+                                                                  context,
+                                                                  MaterialPageRoute(
+                                                                    builder: (context) => PaginaInicial(
+                                                                      nombreUsuario: '',
+                                                                      inicial: false,
+                                                                      enableEmotions: enableEmotions,
+                                                                      randomReflexion: randomReflexion,
+                                                                    ),
+                                                                  ),
+                                                                ),
                           icon: const Icon(Icons.arrow_back),
                           label: const Text("Volver"),
                           style: ElevatedButton.styleFrom(
