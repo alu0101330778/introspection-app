@@ -137,34 +137,41 @@ class _PaginaFraseState extends State<PaginaFrase> {
   }
 
   Future<void> agregarAFavoritos() async {
-    setState(() {
-      guardandoFavorito = true;
-    });
-    try {
-      final userId = await storage.read(key: 'userId');
-      if (userId != null && sentenceId != null) {
-        final baseUrl = dotenv.env['API_BASE_URL']!;
-        final headers = await getApiHeaders();
-        final result = await addFavoriteSentence(
-          baseUrl: baseUrl,
-          userId: userId,
-          sentenceId: sentenceId!,
-          headers: headers,
-        );
-        if (result['statusCode'] == 200) {
-          setState(() {
-            favoritoGuardado = true;
-          });
-        }
+  setState(() {
+    guardandoFavorito = true;
+  });
+
+  try {
+    final userId = await storage.read(key: 'userId');
+    if (userId != null) {
+      final baseUrl = dotenv.env['API_BASE_URL']!;
+      final headers = await getApiHeaders();
+
+      final result = await addFavoriteSentence(
+        baseUrl: baseUrl,
+        userId: userId,
+        sentenceId: sentenceId,
+        title: sentenceId == null ? title : null,
+        headers: headers,
+      );
+
+      if (result['statusCode'] == 200) {
+        setState(() {
+          favoritoGuardado = true;
+        });
+      } else {
+        // Opcional: mostrar error
+        print("Error al guardar favorito: ${result['body']}");
       }
-    } catch (e) {
-      // Manejo de error opcional
-    } finally {
-      setState(() {
-        guardandoFavorito = false;
-      });
     }
+  } catch (e) {
+    print("Excepción al guardar favorito: $e");
+  } finally {
+    setState(() {
+      guardandoFavorito = false;
+    });
   }
+}
 
   @override
   Widget build(BuildContext context) {

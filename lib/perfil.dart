@@ -82,6 +82,11 @@ class _PaginaPerfilState extends State<PaginaPerfil> {
         const SnackBar(content: Text('Configuración actualizada')),
       );
       await cargarUsuario();
+    } else if (result['statusCode'] == 405) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Configuración no permitida')),
+      );
+      await cargarUsuario();
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Error actualizando configuración')),
